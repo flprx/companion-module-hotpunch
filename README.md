@@ -74,6 +74,8 @@ design.
 ## Ports
 
 Defaults follow HotPunch's 468x family ("HOT" on a phone keypad): command
-port `4685`, feedback port `4686`. HotPunch projects created before
-October 2026 keep their saved OSC port (`8010`): set the command port to
-match the project, not the default.
+port `4685`, feedback port `4686`. The OSC port belongs to the HotPunch
+machine, not to the project: it defaults to `4685` and is set in HotPunch
+under Settings > Tally/Web, whichever project is open. If you used `8010`
+with an older HotPunch, either type `8010` back into that setting on the
+HotPunch machine or point this module's command port at `4685`.
