@@ -7,12 +7,12 @@ HotPunch's live state back onto the Stream Deck / Companion buttons.
 ## Setup
 
 1. In HotPunch: **Settings > Tally/Web > Enable OSC remote control** and set a
-   command port (default `8010`).
+   command port (default `4685`).
 2. In Companion, add a **HotPunch** connection and configure:
    - **HotPunch IP** — the machine running HotPunch.
-   - **Command port** — must match HotPunch (default `8010`).
+   - **Command port** — must match HotPunch (default `4685`).
    - **Feedback port** — the local UDP port this machine listens on for state
-     (default `8011`).
+     (default `4686`).
    - **Feedback IP** — usually leave blank to auto-detect; set it if this
      machine has multiple interfaces and HotPunch is on a specific one.
 
@@ -70,3 +70,10 @@ Built against `@companion-module/base` ~1.8 with the `osc` package. Not yet
 verified inside a running Companion instance — see the HotPunch repo
 `docs/superpowers/specs/2026-06-19-osc-remote-control-design.md` for the full
 design.
+
+## Ports
+
+Defaults follow HotPunch's 468x family ("HOT" on a phone keypad): command
+port `4685`, feedback port `4686`. HotPunch projects created before
+October 2026 keep their saved OSC port (`8010`): set the command port to
+match the project, not the default.
