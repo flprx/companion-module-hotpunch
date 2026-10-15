@@ -6,6 +6,7 @@ const { getActions } = require('./actions')
 const { getFeedbacks } = require('./feedbacks')
 const { getVariables } = require('./variables')
 const { getPresets } = require('./presets')
+const { IN, OUT, STATE_PREFIX } = require('./osc-addresses')
 
 // HotPunch prunes a subscriber it hasn't heard from in ~10s, so we re-announce
 // our subscription well inside that window.
@@ -157,7 +158,7 @@ class HotPunchInstance extends InstanceBase {
 		}
 		if (this.udp) {
 			try {
-				if (unsubscribe) this.send('/hotpunch/unsubscribe', [{ type: 's', value: this.localFeedbackIp() }])
+				if (unsubscribe) this.send(IN.Unsubscribe, [{ type: 's', value: this.localFeedbackIp() }])
 			} catch (e) {
 				// ignore
 			}
@@ -173,7 +174,7 @@ class HotPunchInstance extends InstanceBase {
 	subscribe() {
 		// HotPunch's OSCReceiver cannot read the sender, so we announce both our
 		// return port and IP.
-		this.send('/hotpunch/subscribe', [
+		this.send(IN.Subscribe, [
 			{ type: 'i', value: this.config.feedbackPort },
 			{ type: 's', value: this.localFeedbackIp() },
 		])
@@ -198,49 +199,49 @@ class HotPunchInstance extends InstanceBase {
 
 	onOscMessage(msg) {
 		const a = msg.address
-		if (!a || a.indexOf('/hotpunch/state') !== 0) return
+		if (!a || a.indexOf(STATE_PREFIX) !== 0) return
 
 		const arg = msg.args && msg.args.length > 0 ? msg.args[0].value : undefined
 		const asBool = (v) => v === 1 || v === '1' || v === true
 
 		switch (a) {
-			case '/hotpunch/state/mode':
+			case OUT.StateMode:
 				this.state.mode = String(arg)
 				break
-			case '/hotpunch/state/armed':
+			case OUT.StateArmed:
 				this.state.armed = asBool(arg)
 				break
-			case '/hotpunch/state/playing':
+			case OUT.StatePlaying:
 				this.state.playing = asBool(arg)
 				break
-			case '/hotpunch/state/sync':
+			case OUT.StateSync:
 				this.state.sync = asBool(arg)
 				break
-			case '/hotpunch/state/follow':
+			case OUT.StateFollow:
 				this.state.follow = asBool(arg)
 				break
-			case '/hotpunch/state/dualme':
+			case OUT.StateDualme:
 				this.state.dualme = asBool(arg)
 				break
-			case '/hotpunch/state/break/all':
+			case OUT.StateBreakAll:
 				this.state.break_all = asBool(arg)
 				break
-			case '/hotpunch/state/break/me1':
+			case OUT.StateBreakMe1:
 				this.state.break_me1 = asBool(arg)
 				break
-			case '/hotpunch/state/break/me2':
+			case OUT.StateBreakMe2:
 				this.state.break_me2 = asBool(arg)
 				break
-			case '/hotpunch/state/avail/break_all':
+			case OUT.StateAvailBreakAll:
 				this.state.avail_break_all = asBool(arg)
 				break
-			case '/hotpunch/state/avail/break_me1':
+			case OUT.StateAvailBreakMe1:
 				this.state.avail_break_me1 = asBool(arg)
 				break
-			case '/hotpunch/state/avail/break_me2':
+			case OUT.StateAvailBreakMe2:
 				this.state.avail_break_me2 = asBool(arg)
 				break
-			case '/hotpunch/state/heartbeat':
+			case OUT.StateHeartbeat:
 				this.lastHeartbeatTs = Date.now()
 				this.updateStatus(InstanceStatus.Ok)
 				break
