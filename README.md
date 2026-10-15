@@ -45,7 +45,7 @@ Commands (Companion → HotPunch, command port):
 
 ```
 /hotpunch/subscribe <feedbackPort:int> <feedbackIp:string>
-/hotpunch/unsubscribe
+/hotpunch/unsubscribe <feedbackIp:string>
 /hotpunch/transport/play | /stop | /toggle
 /hotpunch/golive            (arm-to-confirm)
 /hotpunch/endlive
