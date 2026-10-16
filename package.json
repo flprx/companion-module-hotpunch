@@ -1,23 +1,29 @@
 {
-  "name": "companion-module-hotpunch",
-  "version": "1.0.0",
-  "type": "commonjs",
-  "main": "main.js",
-  "description": "Bitfocus Companion module for HotPunch live-show cue control over OSC",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/flprx/companion-module-hotpunch.git"
-  },
-  "dependencies": {
-    "@companion-module/base": "~1.8.0",
-    "osc": "^2.4.4"
-  },
-  "devDependencies": {
-    "@companion-module/tools": "^1.5.0"
-  },
-  "scripts": {
-    "build": "companion-module-build",
-    "lint": "echo \"no linter configured\""
-  }
+	"name": "companion-module-hotpunch",
+	"version": "1.1.0",
+	"type": "commonjs",
+	"main": "main.js",
+	"description": "Bitfocus Companion module for HotPunch live-show cue control over OSC",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/flprx/companion-module-hotpunch.git"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"prettier": "@companion-module/tools/.prettierrc.json",
+	"dependencies": {
+		"@companion-module/base": "~1.8.0",
+		"osc": "^2.4.4"
+	},
+	"devDependencies": {
+		"@companion-module/tools": "^1.5.0"
+	},
+	"scripts": {
+		"build": "companion-module-build",
+		"lint": "eslint .",
+		"format": "prettier -w .",
+		"test": "node --test test/*.test.js"
+	}
 }
