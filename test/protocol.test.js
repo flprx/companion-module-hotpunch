@@ -14,7 +14,7 @@ test('every OUT address is handled', () => {
 	const s = createState()
 	for (const [name, address] of Object.entries(OUT)) {
 		const r = applyStateMessage(s, address, 1)
-		assert.notEqual(r, null, name)
+		assert.equal(r, address === OUT.StateHeartbeat ? 'heartbeat' : 'changed', name)
 	}
 })
 

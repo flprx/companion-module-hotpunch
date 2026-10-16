@@ -89,7 +89,10 @@ edit them here, change the source in HotPunch and regenerate.
 - `package.json` and `companion/manifest.json` carry the same version (a test
   checks it).
 - **minor**: new actions, feedbacks or options, or a change in what the module
-  sends to HotPunch; **patch**: fixes.
+  sends to HotPunch; **patch**: fixes; **major**: renaming or removing an
+  action, feedback or variable id (it breaks buttons users already saved).
+- The version is bumped by hand at release time, together with its
+  `CHANGELOG.md` section.
 - Every version gets its section in `CHANGELOG.md`, in the same commit.
 - Dependencies are locked in `package-lock.json`; they are updated in a
   dedicated commit (`npm update`, then lint and tests), never as a side effect.

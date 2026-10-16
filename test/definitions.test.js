@@ -17,7 +17,7 @@ function fakeSelf() {
 test('osc-addresses.js is the generated file', () => {
 	const first = fs.readFileSync(path.join(__dirname, '..', 'osc-addresses.js'), 'utf8').split('\n')[0]
 	assert.match(first, /GENERATED - do not edit/)
-	for (const a of [...Object.values(IN)]) assert.match(a, /^\/hotpunch\//)
+	for (const a of Object.values(IN)) assert.match(a, /^\/hotpunch\//)
 })
 
 test('every command except subscribe/unsubscribe has an action that sends it', () => {
@@ -28,6 +28,12 @@ test('every command except subscribe/unsubscribe has an action that sends it', (
 		if (name === 'Subscribe' || name === 'Unsubscribe') continue
 		assert.ok(sent.has(address), `${name} (${address}) is never sent`)
 	}
+})
+
+test('actions send the bare command: toggles carry no argument', () => {
+	const self = fakeSelf()
+	for (const action of Object.values(getActions(self))) action.callback({ options: {} })
+	for (const m of self.sent) assert.deepEqual(m.args, [], m.address)
 })
 
 test('presets reference existing actions and feedbacks', () => {
@@ -43,5 +49,20 @@ test('every feedback answers a boolean on the default state', () => {
 	for (const [id, f] of Object.entries(getFeedbacks(fakeSelf()))) {
 		assert.equal(f.type, 'boolean', id)
 		assert.equal(typeof f.callback({ options: {} }), 'boolean', id)
+	}
+})
+
+test('feedbacks turn true on a state with every flag on', () => {
+	const self = fakeSelf()
+	for (const f of Object.keys(self.state)) if (f !== 'mode') self.state[f] = true
+	const feedbacks = getFeedbacks(self)
+	const wasTrue = new Set()
+	for (const mode of ['live', 'break', 'standby']) {
+		self.state.mode = mode
+		for (const [id, f] of Object.entries(feedbacks)) if (f.callback({ options: {} })) wasTrue.add(id)
+	}
+	// the "unavailable" feedbacks are the inverse of the avail_* flags: false here
+	for (const id of Object.keys(feedbacks)) {
+		assert.equal(wasTrue.has(id), !id.endsWith('_unavailable'), id)
 	}
 })
