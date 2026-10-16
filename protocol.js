@@ -62,4 +62,35 @@ function subscribeArgs(port, ip) {
 	]
 }
 
-module.exports = { BOOL_FIELDS, createState, applyStateMessage, variableValues, subscribeArgs }
+// (i port, s ip): HotPunch removes only this subscriber ([744]); older
+// HotPunch versions take the IP and remove every subscriber on it.
+function unsubscribeArgs(port, ip) {
+	return subscribeArgs(port, ip)
+}
+
+// Mode of the settable commands (break/*, sync, follow; HotPunch audit F5d
+// [740]). Toggle = no argument (also for buttons made before 1.1.0, which
+// have no mode option); On/Off = i 1 / i 0, an idempotent set. HotPunch
+// versions before F5d ignore the argument and toggle.
+const MODE_CHOICES = [
+	{ id: 'toggle', label: 'Toggle' },
+	{ id: 'on', label: 'On' },
+	{ id: 'off', label: 'Off' },
+]
+
+function argsForMode(mode) {
+	if (mode === 'on') return [{ type: 'i', value: 1 }]
+	if (mode === 'off') return [{ type: 'i', value: 0 }]
+	return []
+}
+
+module.exports = {
+	BOOL_FIELDS,
+	MODE_CHOICES,
+	createState,
+	applyStateMessage,
+	variableValues,
+	subscribeArgs,
+	unsubscribeArgs,
+	argsForMode,
+}

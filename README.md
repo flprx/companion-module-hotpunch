@@ -27,9 +27,11 @@ Transport (play / stop / toggle), **GO LIVE** (arm-to-confirm: first press arms,
 second confirms), END LIVE, breakaway ALL / M/E 1 / M/E 2, sync (TC lock),
 next / previous cue, follow-playhead.
 
+Breakaway (ALL, M/E 1, M/E 2), Sync and Follow have a **Mode** option: Toggle (default), On, Off. On/Off set the state and are safe to press twice.
+
 ## Feedbacks
 
-`armed` (amber until the second GO LIVE press), on-air/LIVE, standby, in-break,
+`armed` (amber until the second GO LIVE press), on-air/LIVE (red), standby (amber), in-break (red),
 breakaway active per bus, breakaway **unavailable** (dims a button when that
 breakaway isn't actionable — HotPunch is the source of truth: Live/Break, and
 M/E 2 only when dual M/E is on), sync locked, playing, follow.
@@ -41,28 +43,44 @@ M/E 2 only when dual M/E is on), sync locked, playing, follow.
 
 ## OSC reference
 
-Commands (Companion → HotPunch, command port):
+<!-- BEGIN GENERATED osc-readme (scripts/gen-contracts.py from docs/contracts/osc-schema.json) - do not edit -->
+Commands (Companion -> HotPunch, command port):
 
-```
-/hotpunch/subscribe <feedbackPort:int> <feedbackIp:string>
-/hotpunch/unsubscribe <feedbackIp:string>
-/hotpunch/transport/play | /stop | /toggle
-/hotpunch/golive            (arm-to-confirm)
-/hotpunch/endlive
-/hotpunch/break/all | /me1 | /me2
-/hotpunch/sync
-/hotpunch/cue/next | /prev
-/hotpunch/follow
-```
+| Address | Arguments | What it does |
+| --- | --- | --- |
+| `/hotpunch/subscribe` | `port` (int), `ip` (string) | Register for state feedback: HotPunch sends to this port and IP (it cannot see the UDP sender). Repeat every 5 s; silent subscribers are dropped after about 10 s. |
+| `/hotpunch/unsubscribe` | `port` (int), `ip` (string) | Stop the feedback to this port and IP. The IP alone (modules up to 1.0.x) stops every port on that IP. |
+| `/hotpunch/transport/play` | - | Play / pause toggle (the same as /hotpunch/transport/toggle). |
+| `/hotpunch/transport/stop` | - | Stop the active timeline. |
+| `/hotpunch/transport/toggle` | - | Play / pause toggle. |
+| `/hotpunch/golive` | - | GO LIVE with arm-to-confirm, as the on-screen button: the first message arms for three seconds, the second confirms. |
+| `/hotpunch/endlive` | - | End the show now (back to Standby), without confirmation. |
+| `/hotpunch/break/all` | `value` (int, optional) | Global Break. No argument: toggle. 1 = on, 0 = off (sending it twice changes nothing); any other value is ignored. |
+| `/hotpunch/break/me1` | `value` (int, optional) | Break on M/E 1. Same argument rules as /hotpunch/break/all. |
+| `/hotpunch/break/me2` | `value` (int, optional) | Break on M/E 2 (dual M/E only). Same argument rules as /hotpunch/break/all. |
+| `/hotpunch/sync` | `value` (int, optional) | Timecode lock. Same argument rules as /hotpunch/break/all. |
+| `/hotpunch/cue/next` | - | Next cue. In Maestro mode this is the GO; otherwise it moves the playhead and is refused while Live. |
+| `/hotpunch/cue/prev` | - | Previous cue. Refused while Live, except in Maestro mode. |
+| `/hotpunch/follow` | `value` (int, optional) | Follow playhead. Same argument rules as /hotpunch/break/all. |
 
-Feedback (HotPunch → feedback port), on change + ~2 s heartbeat:
+Feedback (HotPunch -> feedback port), on every change and with the heartbeat (about every 2 s):
 
-```
-/hotpunch/state/mode (string)   armed playing sync follow dualme  (int 0/1)
-/hotpunch/state/break/all|me1|me2            (int 0/1)
-/hotpunch/state/avail/break_all|me1|me2      (int 0/1)
-/hotpunch/state/heartbeat                    (int)
-```
+| Address | Type | Values |
+| --- | --- | --- |
+| `/hotpunch/state/mode` | string | `offline`, `standby`, `live`, `break` |
+| `/hotpunch/state/armed` | int | `0`, `1` |
+| `/hotpunch/state/playing` | int | `0`, `1` |
+| `/hotpunch/state/sync` | int | `0`, `1` |
+| `/hotpunch/state/follow` | int | `0`, `1` |
+| `/hotpunch/state/dualme` | int | `0`, `1` |
+| `/hotpunch/state/break/all` | int | `0`, `1` |
+| `/hotpunch/state/break/me1` | int | `0`, `1` |
+| `/hotpunch/state/break/me2` | int | `0`, `1` |
+| `/hotpunch/state/avail/break_all` | int | `0`, `1` |
+| `/hotpunch/state/avail/break_me1` | int | `0`, `1` |
+| `/hotpunch/state/avail/break_me2` | int | `0`, `1` |
+| `/hotpunch/state/heartbeat` | int | counter |
+<!-- END GENERATED osc-readme -->
 
 ## Status
 
@@ -96,6 +114,15 @@ edit them here, change the source in HotPunch and regenerate.
 - Every version gets its section in `CHANGELOG.md`, in the same commit.
 - Dependencies are locked in `package-lock.json`; they are updated in a
   dedicated commit (`npm update`, then lint and tests), never as a side effect.
+
+## Compatibility
+
+| Module | HotPunch before F5d (up to 0.5.0) | HotPunch with F5d |
+| --- | --- | --- |
+| 1.0.x | everything works (toggles only) | everything works (toggles only) |
+| 1.1.0 | **On / Off behave as Toggle** (the argument is ignored); unsubscribe removes every subscriber on this machine's IP | On / Off set the state; unsubscribe removes only this instance |
+
+With HotPunch up to 0.5.0, keep the buttons on **Toggle**.
 
 ## Ports
 

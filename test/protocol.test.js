@@ -2,7 +2,16 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
 const { OUT } = require('../osc-addresses')
-const { BOOL_FIELDS, createState, applyStateMessage, variableValues, subscribeArgs } = require('../protocol')
+const {
+	BOOL_FIELDS,
+	createState,
+	applyStateMessage,
+	variableValues,
+	subscribeArgs,
+	argsForMode,
+	unsubscribeArgs,
+	MODE_CHOICES,
+} = require('../protocol')
 
 test('default state: offline, every flag false', () => {
 	const s = createState()
@@ -56,6 +65,25 @@ test('variables', () => {
 test('subscribe args: (i port, s ip)', () => {
 	assert.deepEqual(subscribeArgs(4686, '10.0.0.5'), [
 		{ type: 'i', value: 4686 },
+		{ type: 's', value: '10.0.0.5' },
+	])
+})
+
+test('argsForMode: toggle sends nothing, on/off send i 1 / i 0', () => {
+	assert.deepEqual(argsForMode('toggle'), [])
+	assert.deepEqual(argsForMode(undefined), []) // buttons created before 1.1.0
+	assert.deepEqual(argsForMode('on'), [{ type: 'i', value: 1 }])
+	assert.deepEqual(argsForMode('off'), [{ type: 'i', value: 0 }])
+	assert.deepEqual(argsForMode('bogus'), [])
+	assert.deepEqual(
+		MODE_CHOICES.map((c) => c.id),
+		['toggle', 'on', 'off']
+	)
+})
+
+test('unsubscribe args: (i port, s ip), the order of subscribe', () => {
+	assert.deepEqual(unsubscribeArgs(4687, '10.0.0.5'), [
+		{ type: 'i', value: 4687 },
 		{ type: 's', value: '10.0.0.5' },
 	])
 })

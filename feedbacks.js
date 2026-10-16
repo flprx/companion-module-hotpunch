@@ -1,11 +1,9 @@
-const { combineRgb } = require('@companion-module/base')
+const C = require('./colors')
 
 // Boolean feedbacks: each returns true/false from the mirrored state and applies
-// defaultStyle when true. Colours follow broadcast convention (red on-air,
-// amber armed, orange break, green locked).
-
-const WHITE = combineRgb(255, 255, 255)
-const BLACK = combineRgb(0, 0, 0)
+// defaultStyle when true. Colours come from colors.js, generated from HotPunch's
+// palette (tokens.json): the same state has the same colour in the app and on
+// the buttons. Mapping: HotPunch spec F5d, "Colori di Companion".
 
 function getFeedbacks(self) {
 	const s = () => self.state
@@ -14,28 +12,28 @@ function getFeedbacks(self) {
 		armed: {
 			type: 'boolean',
 			name: 'GO LIVE armed (awaiting confirm)',
-			defaultStyle: { bgcolor: combineRgb(245, 158, 11), color: BLACK },
+			defaultStyle: { bgcolor: C.STANDBY, color: C.TEXT_ON_STANDBY },
 			options: [],
 			callback: () => s().armed,
 		},
 		on_air: {
 			type: 'boolean',
 			name: 'On air (LIVE)',
-			defaultStyle: { bgcolor: combineRgb(220, 38, 38), color: WHITE },
+			defaultStyle: { bgcolor: C.ON_AIR, color: C.TEXT_PRIMARY },
 			options: [],
 			callback: () => s().mode === 'live',
 		},
 		in_break: {
 			type: 'boolean',
 			name: 'In BREAK (any)',
-			defaultStyle: { bgcolor: combineRgb(234, 88, 12), color: WHITE },
+			defaultStyle: { bgcolor: C.BREAK, color: C.TEXT_PRIMARY },
 			options: [],
 			callback: () => s().mode === 'break',
 		},
 		standby: {
 			type: 'boolean',
 			name: 'Standby',
-			defaultStyle: { bgcolor: combineRgb(30, 64, 175), color: WHITE },
+			defaultStyle: { bgcolor: C.STANDBY, color: C.TEXT_ON_STANDBY },
 			options: [],
 			callback: () => s().mode === 'standby',
 		},
@@ -43,21 +41,21 @@ function getFeedbacks(self) {
 		break_all_active: {
 			type: 'boolean',
 			name: 'Breakaway ALL active',
-			defaultStyle: { bgcolor: combineRgb(234, 88, 12), color: WHITE },
+			defaultStyle: { bgcolor: C.BREAK, color: C.TEXT_PRIMARY },
 			options: [],
 			callback: () => s().break_all,
 		},
 		break_me1_active: {
 			type: 'boolean',
 			name: 'Breakaway M/E 1 active',
-			defaultStyle: { bgcolor: combineRgb(234, 88, 12), color: WHITE },
+			defaultStyle: { bgcolor: C.BREAK, color: C.TEXT_PRIMARY },
 			options: [],
 			callback: () => s().break_me1,
 		},
 		break_me2_active: {
 			type: 'boolean',
 			name: 'Breakaway M/E 2 active',
-			defaultStyle: { bgcolor: combineRgb(234, 88, 12), color: WHITE },
+			defaultStyle: { bgcolor: C.BREAK, color: C.TEXT_PRIMARY },
 			options: [],
 			callback: () => s().break_me2,
 		},
@@ -68,21 +66,21 @@ function getFeedbacks(self) {
 		break_all_unavailable: {
 			type: 'boolean',
 			name: 'Breakaway ALL unavailable (dim)',
-			defaultStyle: { bgcolor: combineRgb(40, 40, 40), color: combineRgb(120, 120, 120) },
+			defaultStyle: { bgcolor: C.SURFACE3, color: C.OFFLINE },
 			options: [],
 			callback: () => !s().avail_break_all,
 		},
 		break_me1_unavailable: {
 			type: 'boolean',
 			name: 'Breakaway M/E 1 unavailable (dim)',
-			defaultStyle: { bgcolor: combineRgb(40, 40, 40), color: combineRgb(120, 120, 120) },
+			defaultStyle: { bgcolor: C.SURFACE3, color: C.OFFLINE },
 			options: [],
 			callback: () => !s().avail_break_me1,
 		},
 		break_me2_unavailable: {
 			type: 'boolean',
 			name: 'Breakaway M/E 2 unavailable (dim)',
-			defaultStyle: { bgcolor: combineRgb(40, 40, 40), color: combineRgb(120, 120, 120) },
+			defaultStyle: { bgcolor: C.SURFACE3, color: C.OFFLINE },
 			options: [],
 			callback: () => !s().avail_break_me2,
 		},
@@ -90,21 +88,21 @@ function getFeedbacks(self) {
 		sync_locked: {
 			type: 'boolean',
 			name: 'Sync (TC) locked',
-			defaultStyle: { bgcolor: combineRgb(22, 163, 74), color: WHITE },
+			defaultStyle: { bgcolor: C.LIVE, color: C.TEXT_ON_LIVE },
 			options: [],
 			callback: () => s().sync,
 		},
 		playing: {
 			type: 'boolean',
 			name: 'Playing',
-			defaultStyle: { bgcolor: combineRgb(13, 148, 136), color: WHITE },
+			defaultStyle: { bgcolor: C.LIVE, color: C.TEXT_ON_LIVE },
 			options: [],
 			callback: () => s().playing,
 		},
 		follow: {
 			type: 'boolean',
 			name: 'Follow playhead on',
-			defaultStyle: { bgcolor: combineRgb(2, 132, 199), color: WHITE },
+			defaultStyle: { bgcolor: C.LIVE, color: C.TEXT_ON_LIVE },
 			options: [],
 			callback: () => s().follow,
 		},

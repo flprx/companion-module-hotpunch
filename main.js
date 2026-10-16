@@ -7,7 +7,7 @@ const { getFeedbacks } = require('./feedbacks')
 const { getVariables } = require('./variables')
 const { getPresets } = require('./presets')
 const { IN, STATE_PREFIX } = require('./osc-addresses')
-const { createState, applyStateMessage, variableValues, subscribeArgs } = require('./protocol')
+const { createState, applyStateMessage, variableValues, subscribeArgs, unsubscribeArgs } = require('./protocol')
 
 // HotPunch prunes a subscriber it hasn't heard from in ~10s, so we re-announce
 // our subscription well inside that window.
@@ -38,8 +38,10 @@ class HotPunchInstance extends InstanceBase {
 	}
 
 	async configUpdated(config) {
-		this.config = config
+		// Unsubscribe with the OLD port and IP (HotPunch audit F5d [744]),
+		// then take the new config.
 		this.teardownOsc(true)
+		this.config = config
 		this.setupOsc()
 	}
 
@@ -146,7 +148,7 @@ class HotPunchInstance extends InstanceBase {
 		}
 		if (this.udp) {
 			try {
-				if (unsubscribe) this.send(IN.Unsubscribe, [{ type: 's', value: this.localFeedbackIp() }])
+				if (unsubscribe) this.send(IN.Unsubscribe, unsubscribeArgs(this.config.feedbackPort, this.localFeedbackIp()))
 			} catch (e) {
 				// ignore
 			}
