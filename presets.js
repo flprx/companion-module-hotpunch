@@ -3,7 +3,6 @@ const { combineRgb } = require('@companion-module/base')
 // Ready-made buttons. Feedbacks colour them live from HotPunch state.
 
 const WHITE = combineRgb(255, 255, 255)
-const BLACK = combineRgb(0, 0, 0)
 const DARK = combineRgb(18, 18, 18)
 
 function btn(category, name, text, actionId, feedbacks = [], bgcolor = DARK) {

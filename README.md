@@ -71,6 +71,29 @@ verified inside a running Companion instance — see the HotPunch repo
 `docs/superpowers/specs/2026-06-19-osc-remote-control-design.md` for the full
 design.
 
+## Development
+
+```
+npm ci          # exact dependencies from package-lock.json
+npm run lint    # eslint + prettier (config from @companion-module/tools)
+npm test        # node:test, no Companion needed
+npm run build   # companion-module-build: the package for Companion
+```
+
+`osc-addresses.js` (and, from 1.1.0, `colors.js` and the OSC tables below) are
+**generated** from the HotPunch repository (`scripts/gen-contracts.py`): never
+edit them here, change the source in HotPunch and regenerate.
+
+## Versions
+
+- `package.json` and `companion/manifest.json` carry the same version (a test
+  checks it).
+- **minor**: new actions, feedbacks or options, or a change in what the module
+  sends to HotPunch; **patch**: fixes.
+- Every version gets its section in `CHANGELOG.md`, in the same commit.
+- Dependencies are locked in `package-lock.json`; they are updated in a
+  dedicated commit (`npm update`, then lint and tests), never as a side effect.
+
 ## Ports
 
 Defaults follow HotPunch's 468x family ("HOT" on a phone keypad): command

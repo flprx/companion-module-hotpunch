@@ -6,7 +6,8 @@ const { getActions } = require('./actions')
 const { getFeedbacks } = require('./feedbacks')
 const { getVariables } = require('./variables')
 const { getPresets } = require('./presets')
-const { IN, OUT, STATE_PREFIX } = require('./osc-addresses')
+const { IN, STATE_PREFIX } = require('./osc-addresses')
+const { createState, applyStateMessage, variableValues, subscribeArgs } = require('./protocol')
 
 // HotPunch prunes a subscriber it hasn't heard from in ~10s, so we re-announce
 // our subscription well inside that window.
@@ -19,20 +20,7 @@ class HotPunchInstance extends InstanceBase {
 		super(internal)
 
 		// Mirror of HotPunch's published state (drives feedbacks + variables).
-		this.state = {
-			mode: 'offline',
-			armed: false,
-			playing: false,
-			sync: false,
-			follow: false,
-			dualme: false,
-			break_all: false,
-			break_me1: false,
-			break_me2: false,
-			avail_break_all: false,
-			avail_break_me1: false,
-			avail_break_me2: false,
-		}
+		this.state = createState()
 		this.lastHeartbeatTs = 0
 	}
 
@@ -174,10 +162,7 @@ class HotPunchInstance extends InstanceBase {
 	subscribe() {
 		// HotPunch's OSCReceiver cannot read the sender, so we announce both our
 		// return port and IP.
-		this.send(IN.Subscribe, [
-			{ type: 'i', value: this.config.feedbackPort },
-			{ type: 's', value: this.localFeedbackIp() },
-		])
+		this.send(IN.Subscribe, subscribeArgs(this.config.feedbackPort, this.localFeedbackIp()))
 	}
 
 	// Public helper used by actions.js.
@@ -202,54 +187,9 @@ class HotPunchInstance extends InstanceBase {
 		if (!a || a.indexOf(STATE_PREFIX) !== 0) return
 
 		const arg = msg.args && msg.args.length > 0 ? msg.args[0].value : undefined
-		const asBool = (v) => v === 1 || v === '1' || v === true
+		if (applyStateMessage(this.state, a, arg) === null) return
 
-		switch (a) {
-			case OUT.StateMode:
-				this.state.mode = String(arg)
-				break
-			case OUT.StateArmed:
-				this.state.armed = asBool(arg)
-				break
-			case OUT.StatePlaying:
-				this.state.playing = asBool(arg)
-				break
-			case OUT.StateSync:
-				this.state.sync = asBool(arg)
-				break
-			case OUT.StateFollow:
-				this.state.follow = asBool(arg)
-				break
-			case OUT.StateDualme:
-				this.state.dualme = asBool(arg)
-				break
-			case OUT.StateBreakAll:
-				this.state.break_all = asBool(arg)
-				break
-			case OUT.StateBreakMe1:
-				this.state.break_me1 = asBool(arg)
-				break
-			case OUT.StateBreakMe2:
-				this.state.break_me2 = asBool(arg)
-				break
-			case OUT.StateAvailBreakAll:
-				this.state.avail_break_all = asBool(arg)
-				break
-			case OUT.StateAvailBreakMe1:
-				this.state.avail_break_me1 = asBool(arg)
-				break
-			case OUT.StateAvailBreakMe2:
-				this.state.avail_break_me2 = asBool(arg)
-				break
-			case OUT.StateHeartbeat:
-				this.lastHeartbeatTs = Date.now()
-				this.updateStatus(InstanceStatus.Ok)
-				break
-			default:
-				return
-		}
-
-		// A state field changed: refresh feedbacks + variables.
+		// A state field or the heartbeat: the link is alive, refresh feedbacks + variables.
 		this.lastHeartbeatTs = Date.now()
 		this.updateStatus(InstanceStatus.Ok)
 		this.checkFeedbacks()
@@ -257,18 +197,7 @@ class HotPunchInstance extends InstanceBase {
 	}
 
 	pushVariables() {
-		const s = this.state
-		this.setVariableValues({
-			mode: s.mode,
-			armed: s.armed ? 'armed' : '',
-			playing: s.playing ? 'playing' : 'stopped',
-			sync: s.sync ? 'locked' : 'free',
-			follow: s.follow ? 'on' : 'off',
-			dual_me: s.dualme ? 'on' : 'off',
-			break_all: s.break_all ? 'on' : 'off',
-			break_me1: s.break_me1 ? 'on' : 'off',
-			break_me2: s.break_me2 ? 'on' : 'off',
-		})
+		this.setVariableValues(variableValues(this.state))
 	}
 
 	// --- registration wrappers ----------------------------------------------
