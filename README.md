@@ -85,9 +85,7 @@ Feedback (HotPunch -> feedback port), on every change and with the heartbeat (ab
 ## Status
 
 Built against `@companion-module/base` ~1.8 with the `osc` package. Not yet
-verified inside a running Companion instance — see the HotPunch repo
-`docs/superpowers/specs/2026-06-19-osc-remote-control-design.md` for the full
-design.
+verified inside a running Companion instance.
 
 ## Development
 

@@ -62,15 +62,13 @@ function subscribeArgs(port, ip) {
 	]
 }
 
-// (i port, s ip): HotPunch with the F5d changes removes only this subscriber
-// ([744]). HotPunch 0.5.0 and earlier ignore unsubscribe altogether: the
+// (i port, s ip): newer HotPunch removes only this subscriber. HotPunch 0.5.0 and earlier ignore unsubscribe altogether: the
 // subscription then expires by itself after ~10 s.
 function unsubscribeArgs(port, ip) {
 	return subscribeArgs(port, ip)
 }
 
-// Mode of the settable commands (break/*, sync, follow; HotPunch audit F5d
-// [740]). Toggle = no argument (also for buttons made before 1.1.0, which
+// Mode of the settable commands (break/*, sync, follow). Toggle = no argument (also for buttons made before 1.1.0, which
 // have no mode option); On/Off = i 1 / i 0, an idempotent set. HotPunch 0.5.0
 // and earlier ignore the argument and toggle, hence modeArgs() below.
 const MODE_CHOICES = [
@@ -93,8 +91,10 @@ const FRESH_MS = 5000
 // What to send for a settable command, or null to send nothing. On/Off whose
 // target the fresh mirrored state already has are skipped: with HotPunch 0.5.0
 // and earlier (which toggle whatever the argument) that is what makes On/Off
-// correct while the feedback is alive; with newer HotPunch the set is
-// idempotent anyway, so nothing changes. Stale or unknown state: send.
+// correct while the feedback is alive. With newer HotPunch the set is
+// idempotent anyway, so the guard only matters if the mirror is fresh but
+// wrong (a lost packet, a state change HotPunch did not publish): then an Off
+// may not be sent. Stale or unknown state: send.
 function modeArgs(mode, current, lastStateTs, now = Date.now()) {
 	const target = mode === 'on' ? true : mode === 'off' ? false : undefined
 	if (target === undefined) return argsForMode(mode)

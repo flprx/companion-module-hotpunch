@@ -3,7 +3,7 @@ const C = require('./colors')
 // Boolean feedbacks: each returns true/false from the mirrored state and applies
 // defaultStyle when true. Colours come from colors.js, generated from HotPunch's
 // palette (tokens.json): the same state has the same colour in the app and on
-// the buttons. Mapping: HotPunch spec F5d, "Colori di Companion".
+// the buttons.
 
 function getFeedbacks(self) {
 	const s = () => self.state

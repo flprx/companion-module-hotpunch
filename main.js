@@ -39,8 +39,7 @@ class HotPunchInstance extends InstanceBase {
 	}
 
 	async configUpdated(config) {
-		// Unsubscribe with the OLD port and IP (HotPunch audit F5d [744]),
-		// then take the new config.
+		// Unsubscribe with the OLD port and IP, then take the new config.
 		await this.teardownOsc(true)
 		this.config = config
 		this.setupOsc()
@@ -149,6 +148,10 @@ class HotPunchInstance extends InstanceBase {
 			clearInterval(this.staleTimer)
 			this.staleTimer = undefined
 		}
+		// Forget the mirrored state: after a config change the next HotPunch may be
+		// another machine, and the On/Off guard must not decide on the old one.
+		this.state = createState()
+		this.lastHeartbeatTs = 0
 		const udp = this.udp
 		const sent = this.subscribedAs
 		this.udp = undefined
@@ -229,3 +232,6 @@ class HotPunchInstance extends InstanceBase {
 }
 
 runEntrypoint(HotPunchInstance, [])
+
+// Exported for the tests only; Companion loads the module through runEntrypoint.
+module.exports = HotPunchInstance

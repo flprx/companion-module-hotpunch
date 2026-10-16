@@ -1,6 +1,6 @@
 name: CI
 
-# Lint and tests of the module (HotPunch audit F5d [752]). The OSC addresses
+# Lint and tests of the module. The OSC addresses
 # (osc-addresses.js), the colours (colors.js) and the README OSC tables are
 # generated from the HotPunch repo (scripts/gen-contracts.py); their match with
 # HotPunch's sources is checked there, locally - this repo is nobody's submodule.
