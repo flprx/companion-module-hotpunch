@@ -2,7 +2,7 @@
 // follow have a Mode option: Toggle (no argument, the default), On (1), Off (0).
 
 const { IN } = require('./osc-addresses')
-const { MODE_CHOICES, argsForMode } = require('./protocol')
+const { MODE_CHOICES, modeArgs } = require('./protocol')
 
 const MODE_OPTION = {
 	type: 'dropdown',
@@ -10,7 +10,8 @@ const MODE_OPTION = {
 	label: 'Mode',
 	default: 'toggle',
 	choices: MODE_CHOICES,
-	tooltip: 'On/Off set the state (sending it twice changes nothing). HotPunch versions before F5d always toggle.',
+	tooltip:
+		'On/Off set the state (sending it twice changes nothing). With HotPunch 0.5.0 or earlier On/Off rely on live feedback.',
 }
 
 function getActions(self) {
@@ -18,9 +19,13 @@ function getActions(self) {
 		options: [],
 		callback: () => self.send(address),
 	})
-	const settable = (address) => ({
+	// field: the mirrored state flag of this command (see protocol.js modeArgs)
+	const settable = (address, field) => ({
 		options: [MODE_OPTION],
-		callback: (action) => self.send(address, argsForMode(action.options.mode)),
+		callback: (action) => {
+			const args = modeArgs(action.options.mode, self.state && self.state[field], self.lastHeartbeatTs)
+			if (args) self.send(address, args)
+		},
 	})
 
 	return {
@@ -35,16 +40,16 @@ function getActions(self) {
 		},
 		endlive: { name: 'END LIVE (to Standby)', ...cmd(IN.EndLive) },
 
-		break_all: { name: 'Breakaway: ALL', ...settable(IN.BreakAll) },
-		break_me1: { name: 'Breakaway: M/E 1', ...settable(IN.BreakMe1) },
-		break_me2: { name: 'Breakaway: M/E 2', ...settable(IN.BreakMe2) },
+		break_all: { name: 'Breakaway: ALL', ...settable(IN.BreakAll, 'break_all') },
+		break_me1: { name: 'Breakaway: M/E 1', ...settable(IN.BreakMe1, 'break_me1') },
+		break_me2: { name: 'Breakaway: M/E 2', ...settable(IN.BreakMe2, 'break_me2') },
 
-		sync: { name: 'Sync (TC lock)', ...settable(IN.Sync) },
+		sync: { name: 'Sync (TC lock)', ...settable(IN.Sync, 'sync') },
 
 		cue_next: { name: 'Cue: Next', ...cmd(IN.CueNext) },
 		cue_prev: { name: 'Cue: Previous', ...cmd(IN.CuePrev) },
 
-		follow: { name: 'Follow playhead', ...settable(IN.Follow) },
+		follow: { name: 'Follow playhead', ...settable(IN.Follow, 'follow') },
 	}
 }
 

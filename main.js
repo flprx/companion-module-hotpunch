@@ -2,6 +2,7 @@ const { InstanceBase, InstanceStatus, runEntrypoint, Regex } = require('@compani
 const osc = require('osc')
 const os = require('os')
 
+const { sendThenClose } = require('./transport')
 const { getActions } = require('./actions')
 const { getFeedbacks } = require('./feedbacks')
 const { getVariables } = require('./variables')
@@ -34,13 +35,13 @@ class HotPunchInstance extends InstanceBase {
 	}
 
 	async destroy() {
-		this.teardownOsc(true)
+		await this.teardownOsc(true)
 	}
 
 	async configUpdated(config) {
 		// Unsubscribe with the OLD port and IP (HotPunch audit F5d [744]),
 		// then take the new config.
-		this.teardownOsc(true)
+		await this.teardownOsc(true)
 		this.config = config
 		this.setupOsc()
 	}
@@ -137,7 +138,9 @@ class HotPunchInstance extends InstanceBase {
 		this.udp.open()
 	}
 
-	teardownOsc(unsubscribe) {
+	// Async: the socket is closed only after the unsubscribe has left, so the
+	// caller can reopen the same feedback port afterwards.
+	async teardownOsc(unsubscribe) {
 		if (this.resubTimer) {
 			clearInterval(this.resubTimer)
 			this.resubTimer = undefined
@@ -146,25 +149,31 @@ class HotPunchInstance extends InstanceBase {
 			clearInterval(this.staleTimer)
 			this.staleTimer = undefined
 		}
-		if (this.udp) {
+		const udp = this.udp
+		const sent = this.subscribedAs
+		this.udp = undefined
+		this.subscribedAs = undefined
+		if (!udp) return
+		// Unsubscribe with the (port, ip) pair that subscribe() really sent: the
+		// config may have changed and the auto-detected IP may differ by now.
+		if (unsubscribe && sent) {
+			await sendThenClose(udp, IN.Unsubscribe, unsubscribeArgs(sent.port, sent.ip))
+		} else {
 			try {
-				if (unsubscribe) this.send(IN.Unsubscribe, unsubscribeArgs(this.config.feedbackPort, this.localFeedbackIp()))
+				udp.close()
 			} catch (e) {
 				// ignore
 			}
-			try {
-				this.udp.close()
-			} catch (e) {
-				// ignore
-			}
-			this.udp = undefined
 		}
 	}
 
 	subscribe() {
 		// HotPunch's OSCReceiver cannot read the sender, so we announce both our
 		// return port and IP.
-		this.send(IN.Subscribe, subscribeArgs(this.config.feedbackPort, this.localFeedbackIp()))
+		const port = this.config.feedbackPort
+		const ip = this.localFeedbackIp()
+		this.subscribedAs = { port, ip }
+		this.send(IN.Subscribe, subscribeArgs(port, ip))
 	}
 
 	// Public helper used by actions.js.

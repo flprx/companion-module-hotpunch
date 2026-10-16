@@ -98,7 +98,7 @@ npm test        # node:test, no Companion needed
 npm run build   # companion-module-build: the package for Companion
 ```
 
-`osc-addresses.js` (and, from 1.1.0, `colors.js` and the OSC tables below) are
+`osc-addresses.js` (and, from 1.1.0, `colors.js` and the OSC tables in "OSC reference") are
 **generated** from the HotPunch repository (`scripts/gen-contracts.py`): never
 edit them here, change the source in HotPunch and regenerate.
 
@@ -117,12 +117,16 @@ edit them here, change the source in HotPunch and regenerate.
 
 ## Compatibility
 
-| Module | HotPunch before F5d (up to 0.5.0) | HotPunch with F5d |
+| Module | HotPunch 0.5.0 and earlier | Newer HotPunch |
 | --- | --- | --- |
-| 1.0.x | everything works (toggles only) | everything works (toggles only) |
-| 1.1.0 | **On / Off behave as Toggle** (the argument is ignored); unsubscribe removes every subscriber on this machine's IP | On / Off set the state; unsubscribe removes only this instance |
+| 1.0.x | everything works (toggles only) | everything works (toggles only); unsubscribe by IP alone stops every instance on that IP |
+| 1.1.0 | On / Off rely on the live feedback (see below); unsubscribe is ignored, the subscription expires after ~10 s | On / Off set the state; unsubscribe removes only this instance |
 
-With HotPunch up to 0.5.0, keep the buttons on **Toggle**.
+HotPunch 0.5.0 and earlier ignore the On / Off argument and always toggle. To
+keep On / Off correct, the module does not send them when the feedback is alive
+(state received within the last 5 s) and the state already is the requested
+one. Without live feedback it sends the command anyway, so with those versions
+use **Toggle** on buttons that may be pressed while the link is down.
 
 ## Ports
 

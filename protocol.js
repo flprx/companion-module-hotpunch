@@ -62,16 +62,17 @@ function subscribeArgs(port, ip) {
 	]
 }
 
-// (i port, s ip): HotPunch removes only this subscriber ([744]); older
-// HotPunch versions take the IP and remove every subscriber on it.
+// (i port, s ip): HotPunch with the F5d changes removes only this subscriber
+// ([744]). HotPunch 0.5.0 and earlier ignore unsubscribe altogether: the
+// subscription then expires by itself after ~10 s.
 function unsubscribeArgs(port, ip) {
 	return subscribeArgs(port, ip)
 }
 
 // Mode of the settable commands (break/*, sync, follow; HotPunch audit F5d
 // [740]). Toggle = no argument (also for buttons made before 1.1.0, which
-// have no mode option); On/Off = i 1 / i 0, an idempotent set. HotPunch
-// versions before F5d ignore the argument and toggle.
+// have no mode option); On/Off = i 1 / i 0, an idempotent set. HotPunch 0.5.0
+// and earlier ignore the argument and toggle, hence modeArgs() below.
 const MODE_CHOICES = [
 	{ id: 'toggle', label: 'Toggle' },
 	{ id: 'on', label: 'On' },
@@ -84,7 +85,27 @@ function argsForMode(mode) {
 	return []
 }
 
+// The mirrored state counts as fresh if the last state message or heartbeat
+// is at most this old. HotPunch heartbeats every ~2 s, so this tolerates two
+// missed ones (main.js flags the link stale at 7 s).
+const FRESH_MS = 5000
+
+// What to send for a settable command, or null to send nothing. On/Off whose
+// target the fresh mirrored state already has are skipped: with HotPunch 0.5.0
+// and earlier (which toggle whatever the argument) that is what makes On/Off
+// correct while the feedback is alive; with newer HotPunch the set is
+// idempotent anyway, so nothing changes. Stale or unknown state: send.
+function modeArgs(mode, current, lastStateTs, now = Date.now()) {
+	const target = mode === 'on' ? true : mode === 'off' ? false : undefined
+	if (target === undefined) return argsForMode(mode)
+	const fresh = lastStateTs > 0 && now - lastStateTs <= FRESH_MS
+	if (fresh && typeof current === 'boolean' && current === target) return null
+	return argsForMode(mode)
+}
+
 module.exports = {
+	FRESH_MS,
+	modeArgs,
 	BOOL_FIELDS,
 	MODE_CHOICES,
 	createState,

@@ -37,3 +37,22 @@ test('settable actions send the argument of their mode', () => {
 		}
 	}
 })
+
+test('On/Off are skipped when the fresh mirrored state already matches', () => {
+	for (const [id, field] of [
+		['break_all', 'break_all'],
+		['sync', 'sync'],
+		['follow', 'follow'],
+	]) {
+		const sent = []
+		const self = { state: { [field]: true }, lastHeartbeatTs: Date.now(), send: (a, x) => sent.push({ a, x }) }
+		const actions = getActions(self)
+		actions[id].callback({ options: { mode: 'on' } })
+		assert.deepEqual(sent, [], `${id} on, already on`)
+		actions[id].callback({ options: { mode: 'off' } })
+		assert.equal(sent.length, 1, `${id} off, currently on`)
+		self.lastHeartbeatTs = Date.now() - 60000
+		actions[id].callback({ options: { mode: 'on' } })
+		assert.equal(sent.length, 2, `${id} on, stale state`)
+	}
+})

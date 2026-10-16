@@ -87,3 +87,20 @@ test('unsubscribe args: (i port, s ip), the order of subscribe', () => {
 		{ type: 's', value: '10.0.0.5' },
 	])
 })
+
+test('modeArgs: fresh and equal = nothing, fresh and different = send, stale = send', () => {
+	const { modeArgs, FRESH_MS } = require('../protocol')
+	const now = 100000
+	const fresh = now - 1000
+	assert.equal(modeArgs('on', true, fresh, now), null)
+	assert.equal(modeArgs('off', false, fresh, now), null)
+	assert.deepEqual(modeArgs('on', false, fresh, now), [{ type: 'i', value: 1 }])
+	assert.deepEqual(modeArgs('off', true, fresh, now), [{ type: 'i', value: 0 }])
+	// stale or never received: send even if the mirror says equal
+	assert.deepEqual(modeArgs('on', true, now - FRESH_MS - 1, now), [{ type: 'i', value: 1 }])
+	assert.deepEqual(modeArgs('off', false, 0, now), [{ type: 'i', value: 0 }])
+	assert.equal(modeArgs('on', true, now - FRESH_MS, now), null) // boundary: still fresh
+	// toggle is never skipped
+	assert.deepEqual(modeArgs('toggle', true, fresh, now), [])
+	assert.deepEqual(modeArgs(undefined, false, fresh, now), [])
+})
