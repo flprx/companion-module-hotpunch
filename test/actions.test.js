@@ -60,7 +60,7 @@ test('On/Off are skipped when the fresh mirrored state already matches', () => {
 test('On/Off are always sent when HotPunch announces protocol level 2', () => {
 	const sent = []
 	const self = {
-		state: { break_all: true, proto: 2 },
+		state: { break_all: true, proto: 2, protoTs: Date.now() },
 		lastHeartbeatTs: Date.now(),
 		send: (a, x) => sent.push({ a, x }),
 	}

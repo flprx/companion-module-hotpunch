@@ -121,13 +121,28 @@ test('modeArgs: the On/Off guard applies only to a fresh state without proto 2',
 	const fresh = now - 1000
 	const stale = now - FRESH_MS - 1
 	// HotPunch without F5e (proto 0): fresh state equal to the target -> skipped (as 1.1.0)
-	assert.equal(modeArgs('on', true, fresh, { now, proto: 0 }), null)
+	assert.equal(modeArgs('on', true, fresh, { now, proto: 0, protoTs: fresh }), null)
 	// HotPunch with F5e: always sent, the set is idempotent there
-	assert.deepEqual(modeArgs('on', true, fresh, { now, proto: 2 }), [{ type: 'i', value: 1 }])
-	assert.deepEqual(modeArgs('off', false, fresh, { now, proto: 2 }), [{ type: 'i', value: 0 }])
+	assert.deepEqual(modeArgs('on', true, fresh, { now, proto: 2, protoTs: fresh }), [{ type: 'i', value: 1 }])
+	assert.deepEqual(modeArgs('off', false, fresh, { now, proto: 2, protoTs: fresh }), [{ type: 'i', value: 0 }])
 	// stale state: sent whatever the level (a level heard long ago is not trusted)
-	assert.deepEqual(modeArgs('off', false, stale, { now, proto: 0 }), [{ type: 'i', value: 0 }])
-	assert.deepEqual(modeArgs('off', false, stale, { now, proto: 2 }), [{ type: 'i', value: 0 }])
+	assert.deepEqual(modeArgs('off', false, stale, { now, proto: 0, protoTs: fresh }), [{ type: 'i', value: 0 }])
+	assert.deepEqual(modeArgs('off', false, stale, { now, proto: 2, protoTs: fresh }), [{ type: 'i', value: 0 }])
 	// toggle unchanged
-	assert.deepEqual(modeArgs('toggle', true, fresh, { now, proto: 2 }), [])
+	assert.deepEqual(modeArgs('toggle', true, fresh, { now, proto: 2, protoTs: fresh }), [])
+})
+
+test('modeArgs: a protocol level that is no longer heard stops counting (older HotPunch on the same host)', () => {
+	const { modeArgs, FRESH_MS } = require('../protocol')
+	const s = createState()
+	const t0 = 100000
+	applyStateMessage(s, OUT.StateProto, 2, t0)
+	// HotPunch 0.5.0 replaces it: only state messages and heartbeats, never proto
+	const now = t0 + FRESH_MS + 1000
+	const lastStateTs = now - 500
+	assert.equal(modeArgs('on', true, lastStateTs, { now, proto: s.proto, protoTs: s.protoTs }), null)
+	// while the level is heard, the guard stays off
+	assert.deepEqual(modeArgs('on', true, lastStateTs, { now: t0 + 1000, proto: s.proto, protoTs: s.protoTs }), [
+		{ type: 'i', value: 1 },
+	])
 })

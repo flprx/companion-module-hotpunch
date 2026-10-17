@@ -25,6 +25,7 @@ function getActions(self) {
 		callback: (action) => {
 			const args = modeArgs(action.options.mode, self.state && self.state[field], self.lastHeartbeatTs, {
 				proto: self.state ? self.state.proto : 0,
+				protoTs: self.state ? self.state.protoTs : 0,
 			})
 			if (args) self.send(address, args)
 		},
