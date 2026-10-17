@@ -65,22 +65,22 @@ Commands (Companion -> HotPunch, command port):
 
 Feedback (HotPunch -> feedback port), on every change and with the heartbeat (about every 2 s):
 
-| Address | Type | Values |
-| --- | --- | --- |
-| `/hotpunch/state/mode` | string | `offline`, `standby`, `live`, `break` |
-| `/hotpunch/state/armed` | int | `0`, `1` |
-| `/hotpunch/state/playing` | int | `0`, `1` |
-| `/hotpunch/state/sync` | int | `0`, `1` |
-| `/hotpunch/state/follow` | int | `0`, `1` |
-| `/hotpunch/state/dualme` | int | `0`, `1` |
-| `/hotpunch/state/break/all` | int | `0`, `1` |
-| `/hotpunch/state/break/me1` | int | `0`, `1` |
-| `/hotpunch/state/break/me2` | int | `0`, `1` |
-| `/hotpunch/state/avail/break_all` | int | `0`, `1` |
-| `/hotpunch/state/avail/break_me1` | int | `0`, `1` |
-| `/hotpunch/state/avail/break_me2` | int | `0`, `1` |
-| `/hotpunch/state/heartbeat` | int | counter |
-| `/hotpunch/state/proto` | int | `2` |
+| Address | Type | Values | Meaning |
+| --- | --- | --- | --- |
+| `/hotpunch/state/mode` | string | `offline`, `standby`, `live`, `break` | Operating state of HotPunch. |
+| `/hotpunch/state/armed` | int | `0`, `1` | 1 while GO LIVE is armed, waiting for the confirming press. |
+| `/hotpunch/state/playing` | int | `0`, `1` | 1 while the active timeline is playing. |
+| `/hotpunch/state/sync` | int | `0`, `1` | 1 while the timecode lock is on. |
+| `/hotpunch/state/follow` | int | `0`, `1` | 1 while Follow playhead is on. |
+| `/hotpunch/state/dualme` | int | `0`, `1` | 1 when the project uses dual M/E. |
+| `/hotpunch/state/break/all` | int | `0`, `1` | 1 while the whole show is in Break. |
+| `/hotpunch/state/break/me1` | int | `0`, `1` | 1 while M/E 1 is in Break. |
+| `/hotpunch/state/break/me2` | int | `0`, `1` | 1 while M/E 2 is in Break. |
+| `/hotpunch/state/avail/break_all` | int | `0`, `1` | 1 when the global Break toggle is available (enter from Live, exit from Break). |
+| `/hotpunch/state/avail/break_me1` | int | `0`, `1` | 1 when M/E 1 can go to Break (Live or Break). |
+| `/hotpunch/state/avail/break_me2` | int | `0`, `1` | 1 when M/E 2 can go to Break (Live or Break, dual M/E on). |
+| `/hotpunch/state/heartbeat` | int | counter | Counter that grows with every heartbeat, about every 2 s. |
+| `/hotpunch/state/proto` | int | `2` | OSC protocol level of this HotPunch; absent means level 1. |
 <!-- END GENERATED osc-readme -->
 
 ## Status

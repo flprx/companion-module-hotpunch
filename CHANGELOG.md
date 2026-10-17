@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- **CI**: GitHub actions on Node 24 (checkout v7, setup-node v7).
+- **README**: the feedback table has a Meaning column, generated from HotPunch's OSC schema like the rest of the OSC reference.
+
 ## 1.2.0 - 2026-10-17
 
 On/Off are always sent when HotPunch announces protocol level 2 (`/hotpunch/state/proto`, HotPunch with F5e): the mirror-state guard now applies only to older HotPunch. The announced level counts only while it keeps being heard (within 5 s), so an older HotPunch replacing a newer one on the same host gets the guard back.
