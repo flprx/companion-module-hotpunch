@@ -3,7 +3,7 @@
 	"name": "hotpunch",
 	"shortname": "HotPunch",
 	"description": "Control HotPunch (live-show video-switcher cue manager) over OSC: transport, GO LIVE (arm-to-confirm), breakaway, sync, cue navigation and follow-playhead, with live button feedback.",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"license": "MIT",
 	"repository": "https://github.com/flprx/companion-module-hotpunch.git",
 	"bugs": "https://github.com/flprx/companion-module-hotpunch/issues",

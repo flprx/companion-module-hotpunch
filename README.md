@@ -80,6 +80,7 @@ Feedback (HotPunch -> feedback port), on every change and with the heartbeat (ab
 | `/hotpunch/state/avail/break_me1` | int | `0`, `1` |
 | `/hotpunch/state/avail/break_me2` | int | `0`, `1` |
 | `/hotpunch/state/heartbeat` | int | counter |
+| `/hotpunch/state/proto` | int | `2` |
 <!-- END GENERATED osc-readme -->
 
 ## Status
@@ -119,9 +120,10 @@ edit them here, change the source in HotPunch and regenerate.
 | --- | --- | --- |
 | 1.0.x | everything works (toggles only) | everything works (toggles only); unsubscribe by IP alone stops every instance on that IP |
 | 1.1.0 | On / Off rely on the live feedback (see below); unsubscribe is ignored, the subscription expires after ~10 s | On / Off set the state; unsubscribe removes only this instance |
+| 1.2.0 | same as 1.1.0 | On / Off are always sent when HotPunch announces protocol level 2 (`/hotpunch/state/proto`, HotPunch with F5e); older HotPunch keeps the guard |
 
 HotPunch 0.5.0 and earlier ignore the On / Off argument and always toggle. To
-keep On / Off correct, the module does not send them when the feedback is alive
+keep On / Off correct, the module (without a protocol level 2 announcement from HotPunch) does not send them when the feedback is alive
 (state received within the last 5 s) and the state already is the requested
 one. Without live feedback it sends the command anyway, so with those versions
 use **Toggle** on buttons that may be pressed while the link is down.

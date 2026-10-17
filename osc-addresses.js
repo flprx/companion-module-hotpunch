@@ -33,6 +33,7 @@ module.exports = {
 		StateAvailBreakMe1: '/hotpunch/state/avail/break_me1',
 		StateAvailBreakMe2: '/hotpunch/state/avail/break_me2',
 		StateHeartbeat: '/hotpunch/state/heartbeat',
+		StateProto: '/hotpunch/state/proto',
 	},
 	STATE_PREFIX: '/hotpunch/state',
 }

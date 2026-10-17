@@ -22,13 +22,19 @@ const BOOL_FIELDS = {
 function createState() {
 	const state = { mode: 'offline' }
 	for (const field of Object.values(BOOL_FIELDS)) state[field] = false
+	state.proto = 0 // protocol level announced by HotPunch (0 = not announced)
 	return state
 }
 
 // Apply one feedback message. Returns 'changed' for a state field,
-// 'heartbeat' for the heartbeat, null for anything else (ignored).
+// 'heartbeat' for the heartbeat, 'proto' for the protocol level, null for anything else (ignored).
 function applyStateMessage(state, address, arg) {
 	if (address === OUT.StateHeartbeat) return 'heartbeat'
+	if (address === OUT.StateProto) {
+		const n = typeof arg === 'number' ? arg : Number.NaN
+		state.proto = Number.isInteger(n) && n > 0 ? n : 0
+		return 'proto'
+	}
 	if (address === OUT.StateMode) {
 		state.mode = String(arg)
 		return 'changed'
@@ -88,23 +94,28 @@ function argsForMode(mode) {
 // missed ones (main.js flags the link stale at 7 s).
 const FRESH_MS = 5000
 
-// What to send for a settable command, or null to send nothing. On/Off whose
-// target the fresh mirrored state already has are skipped: with HotPunch 0.5.0
-// and earlier (which toggle whatever the argument) that is what makes On/Off
-// correct while the feedback is alive. With newer HotPunch the set is
-// idempotent anyway, so the guard only matters if the mirror is fresh but
-// wrong (a lost packet, a state change HotPunch did not publish): then an Off
-// may not be sent. Stale or unknown state: send.
-function modeArgs(mode, current, lastStateTs, now = Date.now()) {
+// From this protocol level (/hotpunch/state/proto) HotPunch sets On/Off
+// explicitly and idempotently (F5e).
+const EXPLICIT_SET_PROTO = 2
+
+// What to send for a settable command, or null to send nothing. The guard only
+// serves HotPunch that does not announce level 2 (0.5.0 and earlier, which
+// toggle whatever the argument): there an On/Off whose target the fresh
+// mirrored state already has is skipped, which is what makes On/Off correct
+// while the feedback is alive. From level 2 the set is idempotent in HotPunch,
+// so it is always sent (a fresh but wrong mirror cannot swallow an Off).
+// Stale or unknown state: send, whatever the level.
+function modeArgs(mode, current, lastStateTs, { now = Date.now(), proto = 0 } = {}) {
 	const target = mode === 'on' ? true : mode === 'off' ? false : undefined
 	if (target === undefined) return argsForMode(mode)
 	const fresh = lastStateTs > 0 && now - lastStateTs <= FRESH_MS
-	if (fresh && typeof current === 'boolean' && current === target) return null
+	if (fresh && proto < EXPLICIT_SET_PROTO && typeof current === 'boolean' && current === target) return null
 	return argsForMode(mode)
 }
 
 module.exports = {
 	FRESH_MS,
+	EXPLICIT_SET_PROTO,
 	modeArgs,
 	BOOL_FIELDS,
 	MODE_CHOICES,
