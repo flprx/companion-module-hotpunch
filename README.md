@@ -76,7 +76,7 @@ Feedback (HotPunch -> feedback port), on every change and with the heartbeat (ab
 | `/hotpunch/state/break/all` | int | `0`, `1` | 1 while the whole show is in Break. |
 | `/hotpunch/state/break/me1` | int | `0`, `1` | 1 while M/E 1 is in Break. |
 | `/hotpunch/state/break/me2` | int | `0`, `1` | 1 while M/E 2 is in Break. |
-| `/hotpunch/state/avail/break_all` | int | `0`, `1` | 1 when a global Break can be entered (Live or Break). |
+| `/hotpunch/state/avail/break_all` | int | `0`, `1` | 1 when the global Break toggle is available (enter from Live, exit from Break). |
 | `/hotpunch/state/avail/break_me1` | int | `0`, `1` | 1 when M/E 1 can go to Break (Live or Break). |
 | `/hotpunch/state/avail/break_me2` | int | `0`, `1` | 1 when M/E 2 can go to Break (Live or Break, dual M/E on). |
 | `/hotpunch/state/heartbeat` | int | counter | Counter that grows with every heartbeat, about every 2 s. |
