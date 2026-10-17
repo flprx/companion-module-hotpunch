@@ -23,7 +23,8 @@ test('every OUT address is handled', () => {
 	const s = createState()
 	for (const [name, address] of Object.entries(OUT)) {
 		const r = applyStateMessage(s, address, 1)
-		assert.equal(r, address === OUT.StateHeartbeat ? 'heartbeat' : 'changed', name)
+		const expected = address === OUT.StateHeartbeat ? 'heartbeat' : address === OUT.StateProto ? 'proto' : 'changed'
+		assert.equal(r, expected, name)
 	}
 })
 
@@ -92,15 +93,56 @@ test('modeArgs: fresh and equal = nothing, fresh and different = send, stale = s
 	const { modeArgs, FRESH_MS } = require('../protocol')
 	const now = 100000
 	const fresh = now - 1000
-	assert.equal(modeArgs('on', true, fresh, now), null)
-	assert.equal(modeArgs('off', false, fresh, now), null)
-	assert.deepEqual(modeArgs('on', false, fresh, now), [{ type: 'i', value: 1 }])
-	assert.deepEqual(modeArgs('off', true, fresh, now), [{ type: 'i', value: 0 }])
+	assert.equal(modeArgs('on', true, fresh, { now }), null)
+	assert.equal(modeArgs('off', false, fresh, { now }), null)
+	assert.deepEqual(modeArgs('on', false, fresh, { now }), [{ type: 'i', value: 1 }])
+	assert.deepEqual(modeArgs('off', true, fresh, { now }), [{ type: 'i', value: 0 }])
 	// stale or never received: send even if the mirror says equal
-	assert.deepEqual(modeArgs('on', true, now - FRESH_MS - 1, now), [{ type: 'i', value: 1 }])
-	assert.deepEqual(modeArgs('off', false, 0, now), [{ type: 'i', value: 0 }])
-	assert.equal(modeArgs('on', true, now - FRESH_MS, now), null) // boundary: still fresh
+	assert.deepEqual(modeArgs('on', true, now - FRESH_MS - 1, { now }), [{ type: 'i', value: 1 }])
+	assert.deepEqual(modeArgs('off', false, 0, { now }), [{ type: 'i', value: 0 }])
+	assert.equal(modeArgs('on', true, now - FRESH_MS, { now }), null) // boundary: still fresh
 	// toggle is never skipped
-	assert.deepEqual(modeArgs('toggle', true, fresh, now), [])
-	assert.deepEqual(modeArgs(undefined, false, fresh, now), [])
+	assert.deepEqual(modeArgs('toggle', true, fresh, { now }), [])
+	assert.deepEqual(modeArgs(undefined, false, fresh, { now }), [])
+})
+
+test('applyStateMessage records the protocol level and counts as alive', () => {
+	const s = createState()
+	assert.equal(s.proto, 0)
+	assert.equal(applyStateMessage(s, OUT.StateProto, 2), 'proto')
+	assert.equal(s.proto, 2)
+	assert.equal(applyStateMessage(s, OUT.StateProto, 'x'), 'proto')
+	assert.equal(s.proto, 0)
+})
+
+test('modeArgs: the On/Off guard applies only to a fresh state without proto 2', () => {
+	const { modeArgs, FRESH_MS } = require('../protocol')
+	const now = 100000
+	const fresh = now - 1000
+	const stale = now - FRESH_MS - 1
+	// HotPunch without F5e (proto 0): fresh state equal to the target -> skipped (as 1.1.0)
+	assert.equal(modeArgs('on', true, fresh, { now, proto: 0, protoTs: fresh }), null)
+	// HotPunch with F5e: always sent, the set is idempotent there
+	assert.deepEqual(modeArgs('on', true, fresh, { now, proto: 2, protoTs: fresh }), [{ type: 'i', value: 1 }])
+	assert.deepEqual(modeArgs('off', false, fresh, { now, proto: 2, protoTs: fresh }), [{ type: 'i', value: 0 }])
+	// stale state: sent whatever the level (a level heard long ago is not trusted)
+	assert.deepEqual(modeArgs('off', false, stale, { now, proto: 0, protoTs: fresh }), [{ type: 'i', value: 0 }])
+	assert.deepEqual(modeArgs('off', false, stale, { now, proto: 2, protoTs: fresh }), [{ type: 'i', value: 0 }])
+	// toggle unchanged
+	assert.deepEqual(modeArgs('toggle', true, fresh, { now, proto: 2, protoTs: fresh }), [])
+})
+
+test('modeArgs: a protocol level that is no longer heard stops counting (older HotPunch on the same host)', () => {
+	const { modeArgs, FRESH_MS } = require('../protocol')
+	const s = createState()
+	const t0 = 100000
+	applyStateMessage(s, OUT.StateProto, 2, t0)
+	// HotPunch 0.5.0 replaces it: only state messages and heartbeats, never proto
+	const now = t0 + FRESH_MS + 1000
+	const lastStateTs = now - 500
+	assert.equal(modeArgs('on', true, lastStateTs, { now, proto: s.proto, protoTs: s.protoTs }), null)
+	// while the level is heard, the guard stays off
+	assert.deepEqual(modeArgs('on', true, lastStateTs, { now: t0 + 1000, proto: s.proto, protoTs: s.protoTs }), [
+		{ type: 'i', value: 1 },
+	])
 })

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## 1.2.0 - 2026-10-17
+
+On/Off are always sent when HotPunch announces protocol level 2 (`/hotpunch/state/proto`, HotPunch with F5e): the mirror-state guard now applies only to older HotPunch. The announced level counts only while it keeps being heard (within 5 s), so an older HotPunch replacing a newer one on the same host gets the guard back.
+
 ## 1.1.0 - 2026-10-17
 
 The On/Off modes and the per-port unsubscribe need a HotPunch newer than 0.5.0. With HotPunch 0.5.0 and earlier, On/Off rely on the live feedback (they are skipped when the state already is the requested one); see "Compatibility" in the README.

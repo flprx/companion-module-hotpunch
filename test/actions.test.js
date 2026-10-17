@@ -56,3 +56,14 @@ test('On/Off are skipped when the fresh mirrored state already matches', () => {
 		assert.equal(sent.length, 2, `${id} on, stale state`)
 	}
 })
+
+test('On/Off are always sent when HotPunch announces protocol level 2', () => {
+	const sent = []
+	const self = {
+		state: { break_all: true, proto: 2, protoTs: Date.now() },
+		lastHeartbeatTs: Date.now(),
+		send: (a, x) => sent.push({ a, x }),
+	}
+	getActions(self).break_all.callback({ options: { mode: 'on' } })
+	assert.equal(sent.length, 1, 'on, already on, proto 2')
+})
