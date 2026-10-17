@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- **CI**: GitHub actions on Node 24 (checkout v7, setup-node v7).
 - **README**: the feedback table has a Meaning column, generated from HotPunch's OSC schema like the rest of the OSC reference.
 
 ## 1.2.0 - 2026-10-17
