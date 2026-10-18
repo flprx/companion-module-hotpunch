@@ -40,6 +40,8 @@ test('presets reference existing actions and feedbacks', () => {
 	const actions = getActions(fakeSelf())
 	const feedbacks = getFeedbacks(fakeSelf())
 	for (const [id, p] of Object.entries(getPresets())) {
+		// text presets carry no steps or feedbacks
+		if (p.type !== 'button') continue
 		for (const step of p.steps) for (const a of step.down) assert.ok(actions[a.actionId], `${id}: ${a.actionId}`)
 		for (const f of p.feedbacks) assert.ok(feedbacks[f.feedbackId], `${id}: ${f.feedbackId}`)
 	}
@@ -65,4 +67,29 @@ test('feedbacks turn true on a state with every flag on', () => {
 	for (const id of Object.keys(feedbacks)) {
 		assert.equal(wasTrue.has(id), !id.endsWith('_unavailable'), id)
 	}
+})
+
+test('switcher page placeholders: 14 buttons without actions, plus an explanatory text preset', () => {
+	const { PVW_PAGE_FOR_ME, PLACEHOLDERS } = require('../switcher-pages')
+	const cat = Object.entries(getPresets()).filter(([, p]) => p.category === 'Switcher pages (placeholders)')
+	const buttons = cat.filter(([, p]) => p.type === 'button')
+	assert.equal(PLACEHOLDERS.length, 7)
+	assert.equal(buttons.length, 14)
+	for (const me of [1, 2]) {
+		for (const ph of PLACEHOLDERS) {
+			const [id, p] = buttons.find(([k]) => k === `pvw_me${me}_${ph.id}`) ?? []
+			assert.ok(p, `missing pvw_me${me}_${ph.id}`)
+			assert.deepEqual(p.steps, [{ down: [], up: [] }], id)
+			assert.deepEqual(p.feedbacks, [], id)
+			assert.ok(p.name.startsWith(ph.label), id)
+			assert.ok(p.name.includes(`page ${PVW_PAGE_FOR_ME[me]}`), id)
+			assert.ok(p.name.includes(`row ${ph.row}`) && p.name.includes(`col ${ph.col}`), id)
+		}
+	}
+	assert.equal(PVW_PAGE_FOR_ME[1], 2)
+	assert.equal(PVW_PAGE_FOR_ME[2], 4)
+	const texts = cat.filter(([, p]) => p.type === 'text')
+	assert.equal(texts.length, 1)
+	assert.equal(texts[0][0], 'switcher_pages_about')
+	assert.match(texts[0][1].text, /no actions/i)
 })

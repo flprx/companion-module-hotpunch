@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- **Switcher page placeholders**: labelled buttons (PVW CAM 17-20, PVW WHITE, PVW MP1, PVW MP2, for M/E 1 and M/E 2) at the positions HotPunch's Companion mixer protocol presses. They carry no actions: add your switcher module's action. The README has the page layout, generated from HotPunch's contract.
 - **CI**: GitHub actions on Node 24 (checkout v7, setup-node v7).
 - **README**: the feedback table has a Meaning column, generated from HotPunch's OSC schema like the rest of the OSC reference.
 

@@ -22,6 +22,7 @@ test('feedbacks and presets use only palette colours', () => {
 		assert.ok(palette.has(f.defaultStyle.color), `${id} color`)
 	}
 	for (const [id, p] of Object.entries(getPresets())) {
+		if (p.type !== 'button') continue // text presets have no style
 		assert.ok(palette.has(p.style.bgcolor), `${id} bgcolor`)
 		assert.ok(palette.has(p.style.color), `${id} color`)
 	}
