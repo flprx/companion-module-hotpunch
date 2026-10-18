@@ -1,4 +1,5 @@
 const C = require('./colors')
+const { PVW_PAGE_FOR_ME, PLACEHOLDERS } = require('./switcher-pages')
 
 // Ready-made buttons. Feedbacks colour them live from HotPunch state.
 
@@ -11,6 +12,33 @@ function btn(category, name, text, actionId, feedbacks = [], bgcolor = C.BASE) {
 		steps: [{ down: [{ actionId, options: {} }], up: [] }],
 		feedbacks,
 	}
+}
+
+const PLACEHOLDER_CATEGORY = 'Switcher pages (placeholders)'
+
+// No actions: the user adds the one of their own switcher module.
+function placeholder(me, p) {
+	const page = PVW_PAGE_FOR_ME[me]
+	return {
+		type: 'button',
+		category: PLACEHOLDER_CATEGORY,
+		name: `${p.label} - M/E ${me} (page ${page}, row ${p.row}, col ${p.col})`,
+		style: { text: p.label.replace(/^PVW /, 'PVW\\n'), size: '14', color: C.TEXT_PRIMARY, bgcolor: C.BASE },
+		steps: [{ down: [], up: [] }],
+		feedbacks: [],
+	}
+}
+
+function placeholderPresets() {
+	const out = {}
+	for (const me of [1, 2]) for (const p of PLACEHOLDERS) out[`pvw_me${me}_${p.id}`] = placeholder(me, p)
+	out.switcher_pages_about = {
+		type: 'text',
+		category: PLACEHOLDER_CATEGORY,
+		name: 'About these buttons',
+		text: "These buttons have no actions. Drag each one to the page, row and column in its name, then add the matching action of your switcher's own Companion module.",
+	}
+	return out
 }
 
 function getPresets() {
@@ -39,6 +67,8 @@ function getPresets() {
 
 		sync: btn('Sync & View', 'Sync TC lock', 'SYNC', 'sync', [fb('sync_locked')]),
 		follow: btn('Sync & View', 'Follow playhead', 'FOLLOW', 'follow', [fb('follow')]),
+
+		...placeholderPresets(),
 	}
 }
 

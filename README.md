@@ -41,6 +41,31 @@ M/E 2 only when dual M/E is on), sync locked, playing, follow.
 `mode`, `armed`, `playing`, `sync`, `follow`, `dual_me`, `break_all`,
 `break_me1`, `break_me2`.
 
+## Switcher pages for the HotPunch Companion mixer protocol
+
+This module controls HotPunch. Separately, HotPunch can drive a video switcher *through* Companion (Settings > Mixer > Bitfocus Companion (OSC)): it presses buttons on Companion's built-in OSC, at the positions below. Put at each position a button that runs the matching action of your switcher's own module (for example "set preview to camera 17").
+
+The **Switcher pages (placeholders)** presets give you those buttons already labelled (PVW CAM 17-20, PVW WHITE, PVW MP1, PVW MP2, for M/E 1 and M/E 2). They have **no actions**: drag each one to the page, row and column in its name, then add your switcher module's action to it.
+
+<!-- BEGIN GENERATED companion-pages-readme (scripts/gen-contracts.py from docs/contracts/companion-pages.json) - do not edit -->
+HotPunch presses `/location/<page>/<row>/<col>/press`. Each M/E uses two pages: base page `(me - 1) * 2 + 1` and PVW page `basePage + 1` (M/E 1: pages 1 and 2, M/E 2: pages 3 and 4).
+
+| Page | Row | Column | Button |
+| --- | --- | --- | --- |
+| base | 0 | 0 | CUT |
+| base | 0 | 1 | AUTO TRANS |
+| base | 0 | 2 | RATE |
+| base | 3 | 0-7 | MIX presets 12-100 frames |
+| PVW | 0 | 0-7 | CAM 1-8 |
+| PVW | 1 | 0-7 | CAM 9-16 |
+| PVW | 2 | 0-3 | CAM 17-20 |
+| PVW | 3 | 0 | WHITE |
+| PVW | 3 | 1-2 | MP 1-2 |
+| PVW | 3 | 7 | BLACK |
+
+Custom variable: `/custom-variable/transRate/value` - transition rate in frames.
+<!-- END GENERATED companion-pages-readme -->
+
 ## OSC reference
 
 <!-- BEGIN GENERATED osc-readme (scripts/gen-contracts.py from docs/contracts/osc-schema.json) - do not edit -->
