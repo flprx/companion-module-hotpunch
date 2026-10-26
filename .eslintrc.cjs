@@ -3,6 +3,7 @@
 const config = require('@companion-module/tools/eslint/index.cjs')({ enableTypescript: false })
 
 // Generated from the HotPunch repo (scripts/gen-contracts.py): not linted here.
-config.ignorePatterns = [...(config.ignorePatterns || []), 'osc-addresses.js', 'colors.js']
+// pkg/ is the bundle written by `npm run build`.
+config.ignorePatterns = [...(config.ignorePatterns || []), 'osc-addresses.js', 'colors.js', 'pkg/']
 
 module.exports = config
